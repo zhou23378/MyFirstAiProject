@@ -1,0 +1,20 @@
+FROM python:3.11-slim
+WORKDIR /app
+
+RUN pip install --no-cache-dir \
+  chromadb>=0.5.0 \
+  sentence-transformers==2.5.1 \
+  pymysql>=1.1.0 \
+  fastapi>=0.100.0 \
+  uvicorn>=0.23.0
+
+# Pre-download the BGE model at build time
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('BAAI/bge-small-zh-v1.5')"
+
+COPY ai/ /app/ai/
+COPY requirements_ai.txt /app/
+
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/ai/health')" 2>/dev/null || exit 1
+CMD ["uvicorn", "ai.server:app", "--host", "0.0.0.0", "--port", "8000"]

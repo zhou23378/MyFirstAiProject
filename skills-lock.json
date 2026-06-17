@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "skills": {
+    "bet-sizing": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/bet-sizing/SKILL.md",
+      "computedHash": "7ac106ad8f0bc5e37aa7ff12c89a46ad91c2dd97e00e879140c4cd0c6bb5b522"
+    },
+    "competitor-analysis": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/competitor-analysis/SKILL.md",
+      "computedHash": "7b654731ad85789f00738f160c7b0af97c4ed6d87dfc301fef62f5985e2c88ea"
+    },
+    "experiment-design": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/experiment-design/SKILL.md",
+      "computedHash": "a5361c1f3638a34ab749a36c0c6e42cc6c71dc1381effc6f7a6baf6355a263a1"
+    },
+    "feature-prioritization": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/feature-prioritization/SKILL.md",
+      "computedHash": "6367b2d8882c5f3b542594274b3441e79ae7b705b7070679fa5198b82f8a11b7"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "computedHash": "9e1c8b3103f92fa8092568a44fe64858de7c5c9dc65ce4bea8f168080e889cfd"
+    },
+    "jtbd-analysis": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/jtbd-analysis/SKILL.md",
+      "computedHash": "7db9707f8f40342b0292172bd13c6b5426d14d01987db58f89d61dcfe609d041"
+    },
+    "launch-plan": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/launch-plan/SKILL.md",
+      "computedHash": "744fc4cdb49636cc43c3b1faca349203c5cf2cb9f9c9f70d84f9d96e8d0010a3"
+    },
+    "metrics-framework": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/metrics-framework/SKILL.md",
+      "computedHash": "b7c0866d21ad57ef5c0a2799130d2f845ee0b6d75ac92afce43ea211da7b5ef9"
+    },
+    "opportunity-mapping": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/opportunity-mapping/SKILL.md",
+      "computedHash": "aee74485ab29c05a3b8a4e03f0458854d0d97872ec8e61b1cc19769c6d338e12"
+    },
+    "prd-writing": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/prd-writing/SKILL.md",
+      "computedHash": "a2a2a191bd2fec4edce990b1a592630031eab94dfe47b027eb97e84b40de99d9"
+    },
+    "problem-validation": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/problem-validation/SKILL.md",
+      "computedHash": "544a91fb3dc7a3c691e23f42e11ad837be9e42bab5097c8a8c038b1a21a49456"
+    },
+    "product-positioning": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/product-positioning/SKILL.md",
+      "computedHash": "fa2261bf1bdd9188d1ae1dff5e66892532ad0bde0b5159680dab966e06ef3b1a"
+    },
+    "research-synthesis": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/research-synthesis/SKILL.md",
+      "computedHash": "74c9911fc853858c124e21389f2f09d4e82e526e36dbe24a6ee217959a1dd4e2"
+    },
+    "roadmap-planning": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/roadmap-planning/SKILL.md",
+      "computedHash": "e346c835c190fb91e80c3d5b1e38cc96654f272e927ef9ffaa3cf0f09020232a"
+    },
+    "scope-cutting": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/scope-cutting/SKILL.md",
+      "computedHash": "5de7beb177c7f4c669db4ce679a8950d70136bec9f369e0e1fc8a7ea47ce0e64"
+    },
+    "strategy-doc": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/strategy-doc/SKILL.md",
+      "computedHash": "65a213d59cce9ac8ee56df878e5d88079dd1d82fb5423747d9565e66a1407768"
+    },
+    "user-interview": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/user-interview/SKILL.md",
+      "computedHash": "b880b5f71d2a753c0bd54b5dc7dbeaea62ba915c64eb77892cbd7f92d73d6599"
+    }
+  }
+}

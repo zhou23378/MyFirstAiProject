@@ -1,0 +1,55 @@
+import {
+  Odometer,
+  UserFilled,
+  List,
+  ShoppingCart,
+  Avatar,
+  Medal,
+  Calendar,
+  DataAnalysis,
+  Clock,
+  Goods,
+  Ticket,
+  Setting,
+  Present,
+  Money,
+} from "@element-plus/icons-vue"
+
+export const allMenuItems = [
+  { index: '/', icon: Odometer, title: '仪表盘', group: '业务概览' },
+  { index: '/member', icon: UserFilled, title: '会员管理', group: '会员管理' },
+  { index: '/member-level', icon: Medal, title: '会员等级', group: '系统设置' },
+  { index: '/appointment', icon: Calendar, title: '预约管理', group: '会员管理' },
+  { index: '/consumption', icon: ShoppingCart, title: '消费收银', group: '店务管理' },
+  { index: '/orders', icon: List, title: '消费订单', group: '店务管理' },
+  { index: '/service-queue', icon: List, title: '轮牌排队', group: '店务管理' },
+  { index: '/technician-status', icon: Avatar, title: '技师看板', group: '店务管理' },
+  { index: '/coupon', icon: Ticket, title: '优惠券管理', group: '营销中心' },
+  { index: '/group-buy', icon: ShoppingCart, title: '拼团活动', group: '营销中心' },
+  { index: '/points', icon: Present, title: '积分商城', group: '营销中心' },
+  { index: '/marketing/tag-rules', icon: Setting, title: '标签规则', group: '系统设置' },
+  { index: '/marketing/birthday-config', icon: Present, title: '生日营销', group: '营销中心' },
+  { index: '/employee', icon: Avatar, title: '员工管理', group: '人员管理' },
+  { index: '/schedule', icon: Clock, title: '排班考勤', group: '人员管理' },
+  { index: '/commission', icon: Money, title: '提成结算', group: '人员管理' },
+  { index: '/inventory', icon: Goods, title: '库存管理', group: '商品与财务' },
+  { index: '/service', icon: List, title: '服务项目', group: '系统设置' },
+  { index: '/report', icon: DataAnalysis, title: '营业报表', group: '商品与财务' },
+  { index: '/daily-close', icon: DataAnalysis, title: '财务日结', group: '商品与财务' },
+  { index: '/admin', icon: Setting, title: '系统管理', group: '系统设置' },
+  { index: '/menu-config', icon: Setting, title: '菜单配置', group: '系统设置' },
+  { index: '/quick-actions-config', icon: Setting, title: '快捷入口配置', group: '系统设置' },
+  { index: '/stat-cards-config', icon: DataAnalysis, title: '统计卡片配置', group: '系统设置' },
+]
+
+export const menuGroupDefs = [
+  { label: '业务概览', icon: Odometer },
+  { label: '会员管理', icon: UserFilled },
+  { label: '店务管理', icon: ShoppingCart },
+  { label: '营销中心', icon: Present },
+  { label: '人员管理', icon: Avatar },
+  { label: '商品与财务', icon: Goods },
+  { label: '系统设置', icon: Setting },
+]
+
+export const groupLabels = menuGroupDefs.map(g => g.label)

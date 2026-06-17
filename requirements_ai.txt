@@ -1,0 +1,32 @@
+# ============================================================
+# AI 会员语义搜索 - Python 依赖清单
+# 安装方式: pip install -r requirements_ai.txt
+# ============================================================
+
+# ChromaDB - 轻量级向量数据库
+# 为什么选择 Chroma？
+#   1. 纯本地运行，零配置，pip install 即可使用
+#   2. 基于 SQLite，数据持久化到本地目录 chroma_db/
+#   3. API 极其简洁：创建 collection → add(embeddings) → query(embeddings)
+#   4. 天然支持元数据过滤（可按会员等级、消费区间过滤）
+#   5. 无需 Docker、无需启动额外服务，开发体验极佳
+#   VS FAISS: FAISS 没有元数据，需要自己管理 ID 映射
+#   VS Pinecone/Qdrant: 需要注册云服务或启动容器，学习成本高
+chromadb>=0.5.0  # 0.4.x 需要 C++ 编译工具，Windows 上用 >=0.5.0 或最新版
+
+# Sentence-Transformers - 加载 BGE 语义向量模型
+# 为什么选择 BAAI/bge-small-zh-v1.5？
+#   1. 智源研究院（BAAI）发布，MTEB 中文语义检索榜单 Top 级
+#   2. small 版本仅 24MB，CPU 推理速度极快（<100ms/条）
+#   3. 专门为中文优化，召回率远高于通用多语言模型
+#   4. 本地运行，不依赖任何外部 API，数据不出本机
+#   VS OpenAI text-embedding-3: 需要付费 + 网络，每次调用都产生成本
+#   VS text2vec-large-chinese: 体积 400MB+，too heavy for demo
+sentence-transformers==2.5.1
+
+# PyMySQL - MySQL 数据库连接（embed_from_db.py 使用）
+pymysql>=1.1.0
+
+# FastAPI + Uvicorn - AI 微服务
+fastapi>=0.100.0
+uvicorn>=0.23.0

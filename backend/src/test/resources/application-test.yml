@@ -1,0 +1,36 @@
+# 测试环境配置 - H2 内存数据库 (MySQL 兼容模式)
+# 关闭定时任务，避免测试中意外触发
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=true
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-h2.sql
+
+  # 测试环境关闭定时任务
+  task:
+    scheduling:
+      enabled: false
+
+# JWT 测试配置
+jwt:
+  secret: test-secret-for-integration-tests-only
+  expiration: 86400000
+
+# 关闭 Swagger
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+# MyBatis Plus 测试配置（关闭 SQL 日志减少噪音）
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl

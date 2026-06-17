@@ -1,0 +1,66 @@
+# ========================
+# 敏感配置文件（永不提交）
+# ========================
+.env
+.env.*
+!.env.example
+application-*.local.yml
+
+# ========================
+# 本地/参考资料
+# ========================
+MyFirstAiProject/
+.git-old*/
+awesome-design-md-main-1/
+memory/
+template_test.xlsx
+backend.log
+
+# ========================
+# 操作系统
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========================
+# IDE
+# ========================
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# ========================
+# 后端
+# ========================
+**/target/
+*.class
+*.jar
+*.war
+
+# ========================
+# 前端
+# ========================
+node_modules/
+dist/
+*.log
+npm-debug.log*
+
+# ========================
+# AI / 数据
+# ========================
+chroma_db/
+__pycache__/
+*.pyc
+db/*.sql
+data/*.sql
+*.sqlite3
+
+# ========================
+# AI 工具本地状态
+# ========================
+.claude/
+!.claude/README.md

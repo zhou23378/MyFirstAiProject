@@ -1,0 +1,51 @@
+# 美发沙龙会员管理系统 - 生产环境配置
+# 所有敏感值通过环境变量注入，此文件不提交到版本控制
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/salon?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+# JWT 配置（生产环境必须通过环境变量设置）
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# MyBatis Plus 生产配置：关闭 SQL 日志
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+# Swagger 生产环境关闭
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+# 阿里云短信配置
+aliyun:
+  sms:
+    access-key-id: ${ALIYUN_ACCESS_KEY_ID}
+    access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET}
+    sign-name: ${ALIYUN_SMS_SIGN_NAME:美发沙龙}
+    endpoint: dysmsapi.aliyuncs.com
+
+# 微信支付配置
+wechat:
+  pay:
+    mch-id: ${WECHAT_PAY_MCH_ID}
+    api-v3-key: ${WECHAT_PAY_API_V3_KEY}
+    private-key-path: ${WECHAT_PAY_PRIVATE_KEY_PATH:/etc/secrets/wechat_private_key.pem}
+    app-id: ${WECHAT_PAY_APP_ID}
+    notify-url: ${WECHAT_PAY_NOTIFY_URL:https://api.example.com/api/payment/callback/wechat}
+
+# 支付宝配置
+alipay:
+  app-id: ${ALIPAY_APP_ID}
+  private-key: ${ALIPAY_PRIVATE_KEY}
+  alipay-public-key: ${ALIPAY_PUBLIC_KEY}
+  notify-url: ${ALIPAY_NOTIFY_URL:https://api.example.com/api/payment/callback/alipay}
+  gateway-url: https://openapi.alipay.com/gateway.do

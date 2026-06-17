@@ -1,0 +1,29 @@
+package com.salon.inventory.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+import java.math.BigDecimal;
+
+@Data
+@Schema(description = "采购订单明细")
+public class PurchaseOrderItemDTO {
+
+    @NotNull(message = "商品ID不能为空")
+    @Schema(description = "商品ID")
+    private Long productId;
+
+    @Schema(description = "商品名称")
+    private String productName;
+
+    @Schema(description = "单位")
+    private String unit;
+
+    @NotNull(message = "数量不能为空")
+    @Schema(description = "采购数量")
+    private Integer qty;
+
+    @Schema(description = "采购单价")
+    private BigDecimal price;
+}

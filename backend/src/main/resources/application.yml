@@ -1,0 +1,65 @@
+# 美发沙龙会员管理系统 - 公共配置
+# 所有环境共享的配置，敏感值请在 application-dev.yml / application-prod.yml 中配置
+
+server:
+  port: 8080
+  shutdown: graceful
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 5000
+      idle-timeout: 300000
+      max-lifetime: 600000
+      connection-test-query: SELECT 1
+      pool-name: SalonHikariPool
+
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+  jackson:
+    # 日期格式
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
+  # 激活开发环境配置（生产环境通过 --spring.profiles.active=prod 覆盖）
+  profiles:
+    active: dev
+
+# 业务配置
+salon:
+  churn-risk-days: 60  # 流失预警阈值：超过N天未消费视为流失风险
+
+# MyBatis Plus 配置
+mybatis-plus:
+  configuration:
+    # 下划线转驼峰
+    map-underscore-to-camel-case: true
+    # 控制台打印 SQL 日志（开发环境，生产环境会通过日志级别控制）
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      # 逻辑删除（暂不启用）
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# SpringDoc OpenAPI 路径（是否启用在各环境配置中控制）
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# Actuator 健康检查
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: when-authorized

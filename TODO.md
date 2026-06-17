@@ -20,7 +20,7 @@
 ## Next
 
 - [x] 修复 `CustomerPortalController.pay()` 事务、流水 rows 检查、JDBC 写后读取风险。
-- [ ] 审计日志补充 `password` / `token` / `secret` 等字段级脱敏。
+- [x] 审计日志补充 `password` / `token` / `secret` 等字段级脱敏。
 - [ ] 修复 `BirthdayConfigController` Entity 返回问题。
 - [ ] 评估并处理 `GroupBuyExpiryScheduler` 多实例锁。
 - [ ] 按 `docs/20` 验收预约日历看板，补齐移动端、空态、未分配预约展示等缺口。

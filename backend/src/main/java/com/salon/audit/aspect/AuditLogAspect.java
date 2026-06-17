@@ -1,6 +1,10 @@
 package com.salon.audit.aspect;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.salon.audit.entity.AuditLogEntry;
 import com.salon.audit.service.AuditLogAsyncService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +20,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
+import java.util.Iterator;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -40,6 +46,7 @@ public class AuditLogAspect {
 
     /** 手机号脱敏正则：138****1234 */
     private static final Pattern PHONE_PATTERN = Pattern.compile("(1[3-9]\\d)\\d{4}(\\d{4})");
+    private static final String MASKED_VALUE = "***MASKED***";
 
     public AuditLogAspect(AuditLogAsyncService auditLogAsyncService, ObjectMapper objectMapper) {
         this.auditLogAsyncService = auditLogAsyncService;
@@ -110,7 +117,7 @@ public class AuditLogAspect {
             }
 
             // 请求参数（脱敏）
-            logEntry.setParams(maskSensitiveParams(joinPoint.getArgs()));
+            logEntry.setParams(maskSensitiveParams(joinPoint.getArgs(), signature.getParameterNames()));
 
             logEntry.setStatus(status);
             logEntry.setErrorMessage(errorMessage);
@@ -152,25 +159,35 @@ public class AuditLogAspect {
     }
 
     /**
-     * 脱敏处理：手机号中间4位替换为 ****
+     * 脱敏处理：手机号中间4位替换为 ****；密码、token、secret 等字段替换为固定占位。
      */
-    private String maskSensitiveParams(Object[] args) {
+    String maskSensitiveParams(Object[] args, String[] paramNames) {
         try {
             if (args == null || args.length == 0) {
                 return "";
             }
 
-            // 过滤掉 HttpServletRequest/HttpServletResponse 等不可序列化对象
-            Object[] filteredArgs = java.util.Arrays.stream(args)
-                    .filter(arg -> !(arg instanceof HttpServletRequest))
-                    .filter(arg -> !(arg instanceof HttpServletResponse))
-                    .toArray();
+            ArrayNode params = objectMapper.createArrayNode();
+            for (int i = 0; i < args.length; i++) {
+                Object arg = args[i];
+                if (arg instanceof HttpServletRequest || arg instanceof HttpServletResponse) {
+                    continue;
+                }
+                if (paramNames != null && i < paramNames.length && isSensitiveName(paramNames[i])) {
+                    params.add(MASKED_VALUE);
+                    continue;
+                }
 
-            if (filteredArgs.length == 0) {
+                JsonNode node = objectMapper.valueToTree(arg);
+                maskSensitiveJsonNode(node);
+                params.add(node);
+            }
+
+            if (params.isEmpty()) {
                 return "";
             }
 
-            String json = objectMapper.writeValueAsString(filteredArgs);
+            String json = objectMapper.writeValueAsString(params);
 
             // 脱敏手机号
             java.util.regex.Matcher matcher = PHONE_PATTERN.matcher(json);
@@ -185,6 +202,56 @@ public class AuditLogAspect {
         } catch (Exception e) {
             return "[序列化失败]";
         }
+    }
+
+    private void maskSensitiveJsonNode(JsonNode node) {
+        if (node == null) {
+            return;
+        }
+        if (node.isObject()) {
+            ObjectNode objectNode = (ObjectNode) node;
+            Iterator<String> fieldNames = objectNode.fieldNames();
+            while (fieldNames.hasNext()) {
+                String fieldName = fieldNames.next();
+                if (isSensitiveName(fieldName)) {
+                    objectNode.set(fieldName, TextNode.valueOf(MASKED_VALUE));
+                } else {
+                    maskSensitiveJsonNode(objectNode.get(fieldName));
+                }
+            }
+            return;
+        }
+        if (node.isArray()) {
+            for (JsonNode child : node) {
+                maskSensitiveJsonNode(child);
+            }
+        }
+    }
+
+    private boolean isSensitiveName(String name) {
+        if (name == null || name.isBlank()) {
+            return false;
+        }
+        String normalized = name.toLowerCase(Locale.ROOT)
+                .replace("_", "")
+                .replace("-", "");
+        return normalized.contains("password")
+                || normalized.contains("passwd")
+                || normalized.equals("pwd")
+                || normalized.contains("token")
+                || normalized.contains("secret")
+                || normalized.contains("authorization")
+                || normalized.equals("auth")
+                || normalized.contains("jwt")
+                || normalized.contains("credential")
+                || normalized.contains("apikey")
+                || normalized.contains("accesskey")
+                || normalized.contains("privatekey")
+                || normalized.contains("captcha")
+                || normalized.contains("verificationcode")
+                || normalized.contains("verifycode")
+                || normalized.contains("smscode")
+                || normalized.contains("otp");
     }
 
     /**

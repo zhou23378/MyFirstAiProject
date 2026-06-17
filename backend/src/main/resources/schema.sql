@@ -569,29 +569,135 @@ INSERT IGNORE INTO shift_template (id, name, start_time, end_time, color, sort) 
 -- 审计修复（2026-05-22）: 补齐缺失时间戳字段 + 性能索引
 -- ============================================================
 
-ALTER TABLE consumption_order_item
-  ADD COLUMN IF NOT EXISTS create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  ADD COLUMN IF NOT EXISTS update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间';
+SET @sql = IF(
+  EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = DATABASE() AND table_name = 'consumption_order_item' AND column_name = 'create_time'
+  ),
+  'SELECT 1',
+  'ALTER TABLE consumption_order_item ADD COLUMN create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT ''创建时间'''
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-ALTER TABLE payment_detail
-  ADD COLUMN IF NOT EXISTS update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间';
+SET @sql = IF(
+  EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = DATABASE() AND table_name = 'consumption_order_item' AND column_name = 'update_time'
+  ),
+  'SELECT 1',
+  'ALTER TABLE consumption_order_item ADD COLUMN update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''更新时间'''
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-ALTER TABLE recharge_record
-  ADD COLUMN IF NOT EXISTS update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间';
+SET @sql = IF(
+  EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = DATABASE() AND table_name = 'payment_detail' AND column_name = 'update_time'
+  ),
+  'SELECT 1',
+  'ALTER TABLE payment_detail ADD COLUMN update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''更新时间'''
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-ALTER TABLE audit_log
-  ADD COLUMN IF NOT EXISTS update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间';
+SET @sql = IF(
+  EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = DATABASE() AND table_name = 'recharge_record' AND column_name = 'update_time'
+  ),
+  'SELECT 1',
+  'ALTER TABLE recharge_record ADD COLUMN update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''更新时间'''
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-ALTER TABLE customer_session
-  ADD COLUMN IF NOT EXISTS update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间';
+SET @sql = IF(
+  EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = DATABASE() AND table_name = 'audit_log' AND column_name = 'update_time'
+  ),
+  'SELECT 1',
+  'ALTER TABLE audit_log ADD COLUMN update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''更新时间'''
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-CREATE INDEX IF NOT EXISTS idx_employee_phone ON employee(phone);
-CREATE INDEX IF NOT EXISTS idx_employee_status ON employee(status);
-CREATE INDEX IF NOT EXISTS idx_consumption_order_status ON consumption_order(status);
-CREATE INDEX IF NOT EXISTS idx_consumption_order_create_time ON consumption_order(create_time);
-CREATE INDEX IF NOT EXISTS idx_audit_log_username ON audit_log(username);
-CREATE INDEX IF NOT EXISTS idx_audit_log_create_time ON audit_log(create_time);
-CREATE INDEX IF NOT EXISTS idx_customer_session_expire_at ON customer_session(expire_at);
+SET @sql = IF(
+  EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = DATABASE() AND table_name = 'customer_session' AND column_name = 'update_time'
+  ),
+  'SELECT 1',
+  'ALTER TABLE customer_session ADD COLUMN update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''更新时间'''
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @sql = IF(
+  EXISTS (
+    SELECT 1 FROM information_schema.statistics
+    WHERE table_schema = DATABASE() AND table_name = 'employee' AND index_name = 'idx_employee_phone'
+  ),
+  'SELECT 1',
+  'CREATE INDEX idx_employee_phone ON employee(phone)'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @sql = IF(
+  EXISTS (
+    SELECT 1 FROM information_schema.statistics
+    WHERE table_schema = DATABASE() AND table_name = 'employee' AND index_name = 'idx_employee_status'
+  ),
+  'SELECT 1',
+  'CREATE INDEX idx_employee_status ON employee(status)'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @sql = IF(
+  EXISTS (
+    SELECT 1 FROM information_schema.statistics
+    WHERE table_schema = DATABASE() AND table_name = 'consumption_order' AND index_name = 'idx_consumption_order_status'
+  ),
+  'SELECT 1',
+  'CREATE INDEX idx_consumption_order_status ON consumption_order(status)'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @sql = IF(
+  EXISTS (
+    SELECT 1 FROM information_schema.statistics
+    WHERE table_schema = DATABASE() AND table_name = 'consumption_order' AND index_name = 'idx_consumption_order_create_time'
+  ),
+  'SELECT 1',
+  'CREATE INDEX idx_consumption_order_create_time ON consumption_order(create_time)'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @sql = IF(
+  EXISTS (
+    SELECT 1 FROM information_schema.statistics
+    WHERE table_schema = DATABASE() AND table_name = 'audit_log' AND index_name = 'idx_audit_log_username'
+  ),
+  'SELECT 1',
+  'CREATE INDEX idx_audit_log_username ON audit_log(username)'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @sql = IF(
+  EXISTS (
+    SELECT 1 FROM information_schema.statistics
+    WHERE table_schema = DATABASE() AND table_name = 'audit_log' AND index_name = 'idx_audit_log_create_time'
+  ),
+  'SELECT 1',
+  'CREATE INDEX idx_audit_log_create_time ON audit_log(create_time)'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @sql = IF(
+  EXISTS (
+    SELECT 1 FROM information_schema.statistics
+    WHERE table_schema = DATABASE() AND table_name = 'customer_session' AND index_name = 'idx_customer_session_expire_at'
+  ),
+  'SELECT 1',
+  'CREATE INDEX idx_customer_session_expire_at ON customer_session(expire_at)'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- ============================================================
 -- Phase 10: 提成结算（F5）

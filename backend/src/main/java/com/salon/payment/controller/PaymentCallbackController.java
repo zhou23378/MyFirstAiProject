@@ -5,7 +5,6 @@ import com.salon.payment.service.PaymentGateway;
 import com.salon.payment.service.PaymentDetailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,17 +24,24 @@ import java.util.regex.Pattern;
 @Tag(name = "支付回调", description = "第三方支付异步通知接收")
 @RestController
 @RequestMapping("/api/payment/callback")
-@RequiredArgsConstructor
 public class PaymentCallbackController {
 
-    @Qualifier("wechatPayGateway")
     private final PaymentGateway wechatPayGateway;
 
-    @Qualifier("alipayGateway")
     private final PaymentGateway alipayGateway;
 
     private final PaymentDetailService paymentDetailService;
     private final ApplicationEventPublisher eventPublisher;
+
+    public PaymentCallbackController(@Qualifier("wechatPayGateway") PaymentGateway wechatPayGateway,
+                                     @Qualifier("alipayGateway") PaymentGateway alipayGateway,
+                                     PaymentDetailService paymentDetailService,
+                                     ApplicationEventPublisher eventPublisher) {
+        this.wechatPayGateway = wechatPayGateway;
+        this.alipayGateway = alipayGateway;
+        this.paymentDetailService = paymentDetailService;
+        this.eventPublisher = eventPublisher;
+    }
 
     /** 回调幂等去重集合（Mock 实现使用内存；生产需改用 Redis SETNX） */
     private final Set<String> processedCallbacks = ConcurrentHashMap.newKeySet();

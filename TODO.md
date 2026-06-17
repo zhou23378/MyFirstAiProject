@@ -15,6 +15,7 @@
 - [x] 修正 `application-prod.yml` 模板/提交策略，确保 Docker `prod` profile 可复现启动。
 - [x] 脱敏或排除 `db/` 数据导出中的审计请求参数、测试密码、token 等敏感样例。
 - [x] CI 从 `mvn compile` 升级为 `mvn test`，保留前端 build，并将 Docker smoke 收窄为核心链路 `mysql + backend + frontend`。
+- [x] 修复 Docker/prod 启动失败：支付网关 `wechatPayGateway` / `alipayGateway` 注入冲突，验证 `/actuator/health` 返回 `UP`。
 
 ## Next
 

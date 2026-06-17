@@ -6,7 +6,6 @@ import com.salon.payment.service.PaymentGateway;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service("alipayGateway")
 @Profile("prod")
-@Primary
 public class AlipayGatewayImpl implements PaymentGateway {
 
     @Value("${alipay.app-id:}")

@@ -81,9 +81,9 @@
         </template>
         <template v-else>
           <el-tag type="info" size="large">已完成</el-tag>
-          <span v-if="appointment.status === 3" style="margin-left:8px;color:var(--text-muted)">此预约已转为消费或完成</span>
-          <span v-else-if="appointment.status === 4" style="margin-left:8px;color:var(--text-muted)">此预约已取消</span>
-          <span v-else-if="appointment.status === 5" style="margin-left:8px;color:var(--text-muted)">此预约已标记为爽约</span>
+          <span v-if="appointment.status === 3" class="terminal-hint">此预约已转为消费或完成</span>
+          <span v-else-if="appointment.status === 4" class="terminal-hint">此预约已取消</span>
+          <span v-else-if="appointment.status === 5" class="terminal-hint">此预约已标记为爽约</span>
         </template>
       </div>
     </template>
@@ -215,5 +215,30 @@ async function handleAction(action) {
   gap: 8px;
   padding-top: 16px;
   border-top: 1px solid var(--border-color);
+}
+
+.terminal-hint {
+  margin-left: 8px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 767px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions :deep(.el-button) {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .terminal-hint {
+    display: block;
+    margin: 8px 0 0;
+  }
 }
 </style>

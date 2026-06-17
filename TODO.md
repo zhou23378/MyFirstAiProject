@@ -23,10 +23,11 @@
 - [x] 审计日志补充 `password` / `token` / `secret` 等字段级脱敏。
 - [x] 修复 `BirthdayConfigController` Entity 返回问题。
 - [x] 修复 `GroupBuyExpiryScheduler` 多实例锁，并确保锁在事务完成后释放。
-- [ ] 按 `docs/20` 验收预约日历看板，补齐移动端、空态、未分配预约展示等缺口。
+- [x] 按 `docs/20` 验收预约日历看板，补齐移动端、空态、未分配预约展示等缺口。
 
 ## Later
 
 - [ ] Redis Phase 9：分布式锁、限流、缓存、支付幂等。
 - [ ] 真实微信/支付宝 SDK 与阿里云 SMS 接入。
+- [ ] 预约日历 P1 增强评估：拖拽改期、冲突可视化、批量筛选与打印。
 - [ ] 试点后再启动 AI 流失预测 MVP。

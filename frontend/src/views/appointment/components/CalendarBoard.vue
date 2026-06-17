@@ -4,14 +4,14 @@
     <div class="board-toolbar">
       <div class="toolbar-left">
         <el-button-group>
-          <el-button size="small" @click="prevDate" :icon="'ArrowLeft'" :disabled="loading">前一天</el-button>
+          <el-button size="small" @click="prevDate" :icon="'ArrowLeft'" :disabled="loading">{{ prevButtonLabel }}</el-button>
           <el-button size="small" @click="goToday" :disabled="loading">今天</el-button>
-          <el-button size="small" @click="nextDate" :disabled="loading">后一天</el-button>
+          <el-button size="small" @click="nextDate" :disabled="loading">{{ nextButtonLabel }}</el-button>
         </el-button-group>
         <el-date-picker
           v-model="currentDate"
           type="date"
-          style="width: 160px; margin-left: 8px;"
+          class="toolbar-date-picker"
           @change="onDateChange"
           :disabled="loading"
           value-format="YYYY-MM-DD"
@@ -31,7 +31,7 @@
           placeholder="全部技师"
           clearable
           size="small"
-          style="width: 140px;"
+          class="toolbar-select"
           @change="fetchData"
         >
           <el-option
@@ -46,7 +46,7 @@
           placeholder="全部状态"
           clearable
           size="small"
-          style="width: 110px; margin-left: 8px;"
+          class="toolbar-select status-select"
           @change="fetchData"
         >
           <el-option :value="1" label="已预约" />
@@ -58,12 +58,27 @@
       </div>
     </div>
 
+    <el-alert
+      v-if="errorMessage"
+      class="calendar-error"
+      type="error"
+      show-icon
+      :closable="false"
+      :title="errorMessage"
+    >
+      <template #default>
+        <el-button type="primary" text size="small" @click="fetchData">重试</el-button>
+      </template>
+    </el-alert>
+
     <!-- View content -->
     <DayView
       v-if="viewMode === 'day'"
       :technicians="dayData.technicians"
+      :unassigned-appointments="dayData.unassignedAppointments"
       :current-date="currentDate"
       :stats="dayData.stats"
+      :business-hours="dayData.businessHours"
       :loading="loading"
       @select-appointment="openAppointment"
       @create-appointment="openCreateDialog"
@@ -81,7 +96,7 @@
     <el-dialog
       v-model="createDialogVisible"
       title="新建预约"
-      width="500px"
+      width="min(500px, 92vw)"
       :close-on-click-modal="false"
       @closed="resetCreateForm"
     >
@@ -96,7 +111,7 @@
             step="00:30"
             end="21:00"
             placeholder="选择开始时间"
-            style="width: 100%"
+            class="field-full"
           />
         </el-form-item>
         <el-form-item label="结束时间">
@@ -106,11 +121,11 @@
             step="00:30"
             end="21:00"
             placeholder="选择结束时间"
-            style="width: 100%"
+            class="field-full"
           />
         </el-form-item>
         <el-form-item label="技师">
-          <el-select v-model="createForm.employeeId" placeholder="选择技师" clearable style="width: 100%">
+          <el-select v-model="createForm.employeeId" placeholder="选择技师" clearable class="field-full">
             <el-option
               v-for="e in employeeList"
               :key="e.id"
@@ -128,7 +143,7 @@
             placeholder="搜索会员"
             :remote-method="searchMembers"
             :loading="memberSearchLoading"
-            style="width: 100%"
+            class="field-full"
           >
             <el-option
               v-for="m in memberOptions"
@@ -139,7 +154,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="服务项目" required>
-          <el-select v-model="createForm.serviceItemId" placeholder="选择服务项目" style="width: 100%">
+          <el-select v-model="createForm.serviceItemId" placeholder="选择服务项目" class="field-full">
             <el-option
               v-for="s in serviceOptions"
               :key="s.id"
@@ -162,11 +177,11 @@
     <el-dialog
       v-model="convertDialogVisible"
       title="转消费订单"
-      width="400px"
+      width="min(400px, 92vw)"
     >
       <el-form :model="convertForm" label-width="80px">
         <el-form-item label="支付方式" required>
-          <el-select v-model="convertForm.payMethod" style="width: 100%">
+          <el-select v-model="convertForm.payMethod" class="field-full">
             <el-option :value="1" label="现金" />
             <el-option :value="2" label="余额" />
             <el-option :value="3" label="微信" />
@@ -200,7 +215,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, onMounted } from 'vue'
+import { computed, ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { appointmentApi } from '@/api/appointment'
 import { memberApi } from '@/api/member'
@@ -213,6 +228,7 @@ import AppointmentDrawer from './AppointmentDrawer.vue'
 const viewMode = ref('day')
 const currentDate = ref(new Date().toISOString().slice(0, 10))
 const loading = ref(false)
+const errorMessage = ref('')
 
 const filterEmployeeId = ref(null)
 const filterStatus = ref(null)
@@ -249,6 +265,9 @@ const drawerVisible = ref(false)
 const selectedAppointment = ref(null)
 const selectedTechnicianName = ref('')
 
+const prevButtonLabel = computed(() => viewMode.value === 'day' ? '前一天' : '上一周')
+const nextButtonLabel = computed(() => viewMode.value === 'day' ? '后一天' : '下一周')
+
 function getWeekStart(dateStr) {
   const d = new Date(dateStr)
   const day = d.getDay()
@@ -259,13 +278,20 @@ function getWeekStart(dateStr) {
 
 async function fetchDayData() {
   loading.value = true
+  errorMessage.value = ''
   try {
     const params = { date: currentDate.value }
     if (filterEmployeeId.value) params.employeeId = filterEmployeeId.value
     if (filterStatus.value) params.status = filterStatus.value
-    dayData.value = await appointmentApi.calendarDay(params)
+    const res = await appointmentApi.calendarDay(params)
+    dayData.value = {
+      technicians: res?.technicians || [],
+      unassignedAppointments: res?.unassignedAppointments || [],
+      stats: res?.stats || null,
+      businessHours: res?.businessHours || null
+    }
   } catch {
-    // handled by interceptor
+    errorMessage.value = '日历数据加载失败，请稍后重试'
   } finally {
     loading.value = false
   }
@@ -273,12 +299,14 @@ async function fetchDayData() {
 
 async function fetchWeekData() {
   loading.value = true
+  errorMessage.value = ''
   try {
     const params = { startDate: getWeekStart(currentDate.value) }
     if (filterEmployeeId.value) params.employeeId = filterEmployeeId.value
-    weekData.value = await appointmentApi.calendarWeek(params)
+    const res = await appointmentApi.calendarWeek(params)
+    weekData.value = { days: res?.days || [] }
   } catch {
-    // handled by interceptor
+    errorMessage.value = '周视图数据加载失败，请稍后重试'
   } finally {
     loading.value = false
   }
@@ -354,7 +382,7 @@ function openAppointment(apt) {
   const tech = dayData.value.technicians?.find(t =>
     t.appointments?.some(a => a.id === apt.id)
   )
-  selectedTechnicianName.value = tech?.name || ''
+  selectedTechnicianName.value = tech?.name || apt.technicianName || ''
   drawerVisible.value = true
 }
 
@@ -456,6 +484,28 @@ function onActionDone() {
   gap: 8px;
 }
 
+.toolbar-date-picker {
+  width: 160px;
+  margin-left: 8px;
+}
+
+.toolbar-select {
+  width: 140px;
+}
+
+.status-select {
+  width: 110px;
+  margin-left: 8px;
+}
+
+.calendar-error {
+  border-radius: var(--radius-sm);
+}
+
+.field-full {
+  width: 100%;
+}
+
 .form-static {
   color: var(--text-primary);
   font-weight: 500;
@@ -469,6 +519,34 @@ function onActionDone() {
   .toolbar-left,
   .toolbar-right {
     flex-wrap: wrap;
+  }
+
+  .toolbar-center,
+  .toolbar-date-picker,
+  .toolbar-select,
+  .status-select {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .toolbar-left :deep(.el-button-group) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+  }
+
+  .toolbar-left :deep(.el-button) {
+    min-width: 0;
+  }
+
+  .toolbar-center :deep(.el-radio-group) {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    width: 100%;
+  }
+
+  .toolbar-center :deep(.el-radio-button__inner) {
+    width: 100%;
   }
 }
 </style>

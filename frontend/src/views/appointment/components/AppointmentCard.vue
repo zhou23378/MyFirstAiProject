@@ -94,7 +94,7 @@ defineEmits(['click'])
 
 .status-4 { background: var(--warning-light); }
 .status-4 .card-status-bar { background: var(--warning-color); }
-.status-4 .card-member { color: #b8860b; text-decoration: line-through; }
+.status-4 .card-member { color: var(--warning-color); text-decoration: line-through; }
 
 .status-5 { background: var(--danger-light); }
 .status-5 .card-status-bar { background: var(--danger-color); }

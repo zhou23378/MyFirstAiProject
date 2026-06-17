@@ -1,12 +1,64 @@
 <template>
   <div class="day-view">
-    <div v-if="loading" v-loading="loading" style="min-height: 300px;" />
+    <div v-if="loading" v-loading="loading" class="day-loading" />
 
-    <template v-else-if="technicians.length === 0">
+    <template v-else-if="technicians.length === 0 && unassignedAppointments.length === 0">
       <el-empty description="当日无在职技师" />
     </template>
 
     <template v-else>
+      <div class="unassigned-strip" v-if="unassignedAppointments.length > 0">
+        <div class="strip-title">
+          <span>未分配预约</span>
+          <el-tag size="small" type="warning">{{ unassignedAppointments.length }}</el-tag>
+        </div>
+        <div class="strip-list">
+          <button
+            v-for="apt in unassignedAppointments"
+            :key="apt.id"
+            class="strip-card"
+            type="button"
+            @click="$emit('select-appointment', { ...apt, technicianName: '未分配' })"
+          >
+            <span class="strip-time">{{ formatTimeRange(apt) }}</span>
+            <span class="strip-member">{{ apt.memberName }}</span>
+            <span class="strip-service">{{ apt.serviceItemName }}</span>
+          </button>
+        </div>
+      </div>
+
+      <el-empty
+        v-if="!hasAppointments"
+        class="day-empty"
+        description="当日暂无预约"
+      />
+
+      <div class="mobile-timeline" v-if="timelineAppointments.length > 0">
+        <button
+          v-for="item in timelineAppointments"
+          :key="item.id"
+          type="button"
+          class="timeline-item"
+          :class="`status-${item.status}`"
+          @click="$emit('select-appointment', item)"
+        >
+          <div class="timeline-time">{{ formatTimeRange(item) }}</div>
+          <div class="timeline-main">
+            <div class="timeline-title">
+              <span>{{ item.memberName }}</span>
+              <el-tag size="small" :type="statusTagType(item.status)">
+                {{ statusText(item.status) }}
+              </el-tag>
+            </div>
+            <div class="timeline-meta">
+              <span>{{ item.serviceItemName || '未选择项目' }}</span>
+              <span>{{ item.technicianName || '未分配技师' }}</span>
+            </div>
+            <div v-if="item.remark" class="timeline-remark">{{ item.remark }}</div>
+          </div>
+        </button>
+      </div>
+
       <div class="day-grid" ref="gridRef">
         <!-- Header row: time label + technician names -->
         <div class="grid-header">
@@ -51,6 +103,7 @@
               :key="slot.label"
               class="slot-row"
               :class="{ 'slot-hour': slot.isHour }"
+              @click.stop="$emit('create-appointment', { date: currentDate, startTime: slot.label, employeeId: tech.id })"
             />
 
             <!-- Appointment cards -->
@@ -82,8 +135,10 @@ import AppointmentCard from './AppointmentCard.vue'
 
 const props = defineProps({
   technicians: { type: Array, default: () => [] },
+  unassignedAppointments: { type: Array, default: () => [] },
   currentDate: { type: String, default: '' },
   stats: { type: Object, default: null },
+  businessHours: { type: Object, default: null },
   loading: { type: Boolean, default: false }
 })
 
@@ -93,13 +148,39 @@ const gridRef = ref(null)
 const bodyRef = ref(null)
 
 const SLOT_MINUTES = 30
-const START_HOUR = 8
-const END_HOUR = 21
-const SLOT_HEIGHT = 40 // px per 30-min slot
+const DEFAULT_START_HOUR = 8
+const DEFAULT_END_HOUR = 21
+const SLOT_HEIGHT = 32 // must match .time-slot and .slot-row height
+
+const statusMap = { 1: '已预约', 2: '已到店', 3: '已完成', 4: '已取消', 5: '爽约' }
+const statusTagMap = { 1: 'primary', 2: 'success', 3: 'info', 4: 'warning', 5: 'danger' }
+
+const startHour = computed(() => parseHour(props.businessHours?.start, DEFAULT_START_HOUR))
+const endHour = computed(() => parseHour(props.businessHours?.end, DEFAULT_END_HOUR))
+
+const hasAppointments = computed(() => timelineAppointments.value.length > 0)
+
+const timelineAppointments = computed(() => {
+  const assigned = props.technicians.flatMap(tech =>
+    (tech.appointments || []).map(apt => ({
+      ...apt,
+      technicianName: tech.name
+    }))
+  )
+  const unassigned = props.unassignedAppointments.map(apt => ({
+    ...apt,
+    technicianName: '未分配'
+  }))
+  return [...assigned, ...unassigned].sort((a, b) => {
+    const diff = timeToMinutes(a.startTime) - timeToMinutes(b.startTime)
+    if (diff !== 0) return diff
+    return (a.id || 0) - (b.id || 0)
+  })
+})
 
 const timeSlots = computed(() => {
   const slots = []
-  for (let h = START_HOUR; h < END_HOUR; h++) {
+  for (let h = startHour.value; h < endHour.value; h++) {
     for (let m = 0; m < 60; m += SLOT_MINUTES) {
       const label = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
       slots.push({ label, isHour: m === 0 })
@@ -108,10 +189,16 @@ const timeSlots = computed(() => {
   return slots
 })
 
+function parseHour(timeStr, fallback) {
+  if (!timeStr) return fallback
+  const hour = Number(String(timeStr).split(':')[0])
+  return Number.isFinite(hour) ? hour : fallback
+}
+
 function timeToMinutes(timeStr) {
   if (!timeStr) return 0
   const [h, m] = timeStr.split(':').map(Number)
-  return (h - START_HOUR) * 60 + m
+  return (h - startHour.value) * 60 + m
 }
 
 function getCardStyle(apt) {
@@ -129,11 +216,27 @@ function getCardStyle(apt) {
 function getClickedTime(event, tech) {
   if (!bodyRef.value) return ''
   const rect = bodyRef.value.getBoundingClientRect()
-  const y = event.clientY - rect.top
+  const y = event.clientY - rect.top + bodyRef.value.scrollTop
   const totalMinutes = Math.floor(y / SLOT_HEIGHT) * SLOT_MINUTES
-  const hour = START_HOUR + Math.floor(totalMinutes / 60)
-  const min = totalMinutes % 60
+  const maxMinutes = (endHour.value - startHour.value) * 60 - SLOT_MINUTES
+  const boundedMinutes = Math.max(0, Math.min(totalMinutes, maxMinutes))
+  const hour = startHour.value + Math.floor(boundedMinutes / 60)
+  const min = boundedMinutes % 60
   return `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`
+}
+
+function formatTimeRange(apt) {
+  const start = apt.startTime?.slice(0, 5) || '--:--'
+  const end = apt.endTime?.slice(0, 5) || '--:--'
+  return `${start}-${end}`
+}
+
+function statusText(status) {
+  return statusMap[status] || '未知'
+}
+
+function statusTagType(status) {
+  return statusTagMap[status] || 'info'
 }
 </script>
 
@@ -143,6 +246,85 @@ function getClickedTime(event, tech) {
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 1px solid var(--border-color);
+}
+
+.day-loading {
+  min-height: 300px;
+}
+
+.day-empty {
+  border-bottom: 1px solid var(--border-light);
+}
+
+.unassigned-strip {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--warning-light);
+}
+
+.strip-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.strip-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.strip-card {
+  display: grid;
+  grid-template-columns: auto minmax(72px, 1fr);
+  gap: 2px 8px;
+  min-width: 220px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--warning-color);
+  border-radius: var(--radius-xs);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.strip-card:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.strip-time {
+  grid-row: span 2;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.strip-member,
+.strip-service {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.strip-member {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.strip-service {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.mobile-timeline {
+  display: none;
 }
 
 .day-grid {
@@ -234,12 +416,11 @@ function getClickedTime(event, tech) {
 }
 
 .time-slot {
-  height: 20px;
+  height: 32px;
   border-top: 1px solid var(--border-light);
 }
 
 .time-slot-hour {
-  height: 20px;
   border-top-color: var(--border-color);
 }
 
@@ -261,8 +442,14 @@ function getClickedTime(event, tech) {
 }
 
 .slot-row {
-  height: 20px;
+  height: 32px;
   border-top: 1px solid var(--border-light);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.slot-row:hover {
+  background: var(--bg-primary-ghost);
 }
 
 .slot-hour {
@@ -293,10 +480,116 @@ function getClickedTime(event, tech) {
 
 /* Responsive */
 @media (max-width: 767px) {
-  .time-header { width: 44px; }
-  .time-axis { width: 44px; }
-  .time-label { font-size: 9px; }
-  .tech-avatar { width: 28px; height: 28px; font-size: 11px; }
-  .day-stats { gap: 10px; flex-wrap: wrap; }
+  .day-view {
+    border-radius: var(--radius-sm);
+  }
+
+  .unassigned-strip {
+    padding: 10px 12px;
+  }
+
+  .strip-list {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .strip-card {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .day-grid {
+    display: none;
+  }
+
+  .mobile-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .timeline-item.status-2 {
+    border-left-color: var(--success-color);
+  }
+
+  .timeline-item.status-3 {
+    border-left-color: var(--text-muted);
+  }
+
+  .timeline-item.status-4 {
+    border-left-color: var(--warning-color);
+  }
+
+  .timeline-item.status-5 {
+    border-left-color: var(--danger-color);
+  }
+
+  .timeline-time {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .timeline-main {
+    min-width: 0;
+  }
+
+  .timeline-title,
+  .timeline-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .timeline-title span:first-child,
+  .timeline-meta span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .timeline-title {
+    font-size: var(--font-size-mobile-base);
+    font-weight: 600;
+  }
+
+  .timeline-meta {
+    margin-top: 4px;
+    color: var(--text-secondary);
+    font-size: var(--font-size-mobile-sm);
+  }
+
+  .timeline-remark {
+    margin-top: 6px;
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .day-stats {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
 }
 </style>

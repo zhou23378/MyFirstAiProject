@@ -1,6 +1,6 @@
 <template>
   <div class="week-view">
-    <div v-if="loading" v-loading="loading" style="min-height: 200px;" />
+    <div v-if="loading" v-loading="loading" class="week-loading" />
 
     <template v-else-if="days.length === 0">
       <el-empty description="本周暂无预约" />
@@ -85,6 +85,10 @@ function formatDate(dateStr) {
   border: 1px solid var(--border-color);
 }
 
+.week-loading {
+  min-height: 200px;
+}
+
 .week-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -95,6 +99,7 @@ function formatDate(dateStr) {
   background: var(--bg-page);
   border-radius: var(--radius-sm);
   padding: 12px 10px;
+  min-width: 0;
   cursor: pointer;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
   border: 2px solid transparent;
@@ -118,6 +123,7 @@ function formatDate(dateStr) {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 8px;
   margin-bottom: 8px;
 }
 
@@ -125,11 +131,13 @@ function formatDate(dateStr) {
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .day-date {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .day-count {
@@ -218,6 +226,7 @@ function formatDate(dateStr) {
 
 .week-legend {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-top: 16px;
   padding-top: 12px;
@@ -234,11 +243,47 @@ function formatDate(dateStr) {
 }
 
 @media (max-width: 767px) {
+  .week-view {
+    padding: 12px;
+  }
+
   .week-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
   }
-  .week-day { padding: 8px; }
-  .count-number { font-size: 22px; }
+
+  .week-day {
+    min-height: 132px;
+    padding: 8px;
+  }
+
+  .day-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .count-number {
+    font-size: 22px;
+  }
+
+  .count-label,
+  .apt-service {
+    display: none;
+  }
+
+  .day-apt-row {
+    gap: 3px;
+    padding: 2px 0;
+  }
+
+  .apt-name {
+    flex: 1;
+  }
+
+  .week-legend {
+    justify-content: flex-start;
+    gap: 8px 12px;
+  }
 }
 </style>

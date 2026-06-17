@@ -47,6 +47,8 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND(404, "会员不存在"),
     /** 余额不足 */
     MEMBER_BALANCE_INSUFFICIENT(400, "会员余额不足"),
+    /** 余额流水写入失败 */
+    BALANCE_RECORD_WRITE_FAILED(500, "余额流水写入失败"),
 
     // ──────────── 服务项目 ────────────
     /** 服务项目不存在 */

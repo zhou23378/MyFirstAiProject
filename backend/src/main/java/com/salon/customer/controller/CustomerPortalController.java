@@ -2,6 +2,8 @@ package com.salon.customer.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.salon.common.exception.BusinessException;
+import com.salon.common.exception.ErrorCode;
 import com.salon.common.result.PageResult;
 import com.salon.common.result.Result;
 import com.salon.consumption.entity.ConsumptionOrder;
@@ -58,7 +60,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -70,6 +74,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -80,6 +85,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/customer/portal")
 @RequiredArgsConstructor
+@Slf4j
 public class CustomerPortalController {
 
     private final CustomerAuthService authService;
@@ -329,6 +335,7 @@ public class CustomerPortalController {
 
     @Operation(summary = "顾客余额支付")
     @PostMapping("/pay")
+    @Transactional(rollbackFor = Exception.class)
     public Result<java.util.Map<String, Object>> pay(
             @RequestHeader("X-Customer-Token") String token,
             @Valid @RequestBody CustomerPayReqDTO req) {
@@ -339,20 +346,25 @@ public class CustomerPortalController {
         if (!"BALANCE".equals(req.getPayMethod())) {
             return Result.badRequest("暂仅支持余额支付，微信/支付宝支付即将上线");
         }
+        BigDecimal amount = req.getAmount().setScale(2, RoundingMode.HALF_UP);
+        int recordRows = jdbcTemplate.update(
+                "INSERT INTO recharge_record (member_id, amount, pay_method, remark, create_time) VALUES (?, ?, ?, ?, NOW())",
+                memberId, amount.negate(), 8, "余额支付");
+        if (recordRows == 0) {
+            throw new BusinessException(ErrorCode.BALANCE_RECORD_WRITE_FAILED);
+        }
         int rows = jdbcTemplate.update(
                 "UPDATE member SET balance = balance - ? WHERE id = ? AND balance >= ?",
-                req.getAmount(), memberId, req.getAmount());
+                amount, memberId, amount);
         if (rows == 0) {
-            return Result.badRequest("余额不足");
+            throw new BusinessException(ErrorCode.MEMBER_BALANCE_INSUFFICIENT, "余额不足");
         }
-        // 写入扣款流水
-        jdbcTemplate.update(
-                "INSERT INTO recharge_record (member_id, amount, pay_method, remark, create_time) VALUES (?, ?, ?, ?, NOW())",
-                memberId, req.getAmount().negate(), 8, "余额支付");
 
-        Member member = memberMapper.selectById(memberId);
+        BigDecimal balance = jdbcTemplate.queryForObject(
+                "SELECT balance FROM member WHERE id = ?", BigDecimal.class, memberId);
+        log.info("顾客余额支付成功: memberId={}, amount={}, balance={}", memberId, amount, balance);
         return Result.success(java.util.Map.of(
-                "balance", member.getBalance(),
+                "balance", balance,
                 "message", "支付成功"));
     }
 

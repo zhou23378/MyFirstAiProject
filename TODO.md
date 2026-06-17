@@ -14,7 +14,7 @@
 - [x] 完成仓库扁平化迁移：根目录结构、根级 CI、`.gitignore` 清理一次性提交。
 - [x] 修正 `application-prod.yml` 模板/提交策略，确保 Docker `prod` profile 可复现启动。
 - [x] 脱敏或排除 `db/` 数据导出中的审计请求参数、测试密码、token 等敏感样例。
-- [x] CI 从 `mvn compile` 升级为 `mvn test`，保留前端 build 和轻量 smoke。
+- [x] CI 从 `mvn compile` 升级为 `mvn test`，保留前端 build，并将 Docker smoke 收窄为核心链路 `mysql + backend + frontend`。
 
 ## Next
 

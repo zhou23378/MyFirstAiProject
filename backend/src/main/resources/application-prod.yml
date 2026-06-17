@@ -28,24 +28,24 @@ springdoc:
 # 阿里云短信配置
 aliyun:
   sms:
-    access-key-id: ${ALIYUN_ACCESS_KEY_ID}
-    access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET}
+    access-key-id: ${ALIYUN_ACCESS_KEY_ID:}
+    access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET:}
     sign-name: ${ALIYUN_SMS_SIGN_NAME:美发沙龙}
     endpoint: dysmsapi.aliyuncs.com
 
 # 微信支付配置
 wechat:
   pay:
-    mch-id: ${WECHAT_PAY_MCH_ID}
-    api-v3-key: ${WECHAT_PAY_API_V3_KEY}
-    private-key-path: ${WECHAT_PAY_PRIVATE_KEY_PATH:/etc/secrets/wechat_private_key.pem}
-    app-id: ${WECHAT_PAY_APP_ID}
+    mch-id: ${WECHAT_PAY_MCH_ID:}
+    api-v3-key: ${WECHAT_PAY_API_V3_KEY:}
+    private-key-path: ${WECHAT_PAY_PRIVATE_KEY_PATH:}
+    app-id: ${WECHAT_PAY_APP_ID:}
     notify-url: ${WECHAT_PAY_NOTIFY_URL:https://api.example.com/api/payment/callback/wechat}
 
 # 支付宝配置
 alipay:
-  app-id: ${ALIPAY_APP_ID}
-  private-key: ${ALIPAY_PRIVATE_KEY}
-  alipay-public-key: ${ALIPAY_PUBLIC_KEY}
+  app-id: ${ALIPAY_APP_ID:}
+  private-key: ${ALIPAY_PRIVATE_KEY:}
+  alipay-public-key: ${ALIPAY_PUBLIC_KEY:}
   notify-url: ${ALIPAY_NOTIFY_URL:https://api.example.com/api/payment/callback/alipay}
   gateway-url: https://openapi.alipay.com/gateway.do

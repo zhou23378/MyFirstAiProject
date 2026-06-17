@@ -24,6 +24,7 @@
 - [x] 修复 `BirthdayConfigController` Entity 返回问题。
 - [x] 修复 `GroupBuyExpiryScheduler` 多实例锁，并确保锁在事务完成后释放。
 - [x] 按 `docs/20` 验收预约日历看板，补齐移动端、空态、未分配预约展示等缺口。
+- [ ] Redis Phase 9 前置：规划并执行一次前端 UI 重构，降低“AI 生成感”，引入更有活力的视觉语言、微交互和动态动画；先完成 Skill 选型 + UI 重构 PRD，再进入实现。
 
 ## Later
 

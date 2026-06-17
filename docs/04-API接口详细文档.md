@@ -2391,7 +2391,20 @@ public record PaymentSuccessEvent(
 | couponTemplateId | Long | 否 | 优惠券模板 ID |
 | smsEnabled | Integer | 否 | 1=发短信 0=不发 |
 
-**响应 (200)：** `{ "code": 200, "msg": "操作成功" }`
+**响应 (200)：**
+```json
+{
+  "code": 200,
+  "msg": "操作成功",
+  "data": {
+    "id": 1,
+    "enabled": 1,
+    "couponTemplateId": 3,
+    "smsEnabled": 1,
+    "updateTime": "2026-05-24 15:00:00"
+  }
+}
+```
 
 ### 生日营销 API 路径速查
 
